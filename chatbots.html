@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaotic Chat Log</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        .chat-log {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .username {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .timestamp {
+            font-size: 0.8em;
+            color: #999;
+            margin-left: 10px;
+        }
+        .bot-logout {
+            color: red;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chaotic Chat Log</h1>
+    <div class="chat-log" id="chat-log"></div>
+    <div id="bot-count">Bots Online: <span id="bot-count-value">30</span></div>
+
+    <script>
+        const activeBots = {};
+        const totalBots = 30;
+
+        const getRandomUsername = () => {
+            const randomLength = Math.floor(Math.random() * 8) + 3;
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let username = '';
+            for (let i = 0; i < randomLength; i++) {
+                username += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return username;
+        };
+
+        const getColorFromUsername = (username) => {
+            const colors = [
+                "#FF5733", "#33FF57", "#3357FF", "#F1C40F", 
+                "#8E44AD", "#E67E22", "#3498DB", "#1ABC9C", 
+                "#D35400", "#C0392B"
+            ];
+            const sumCharCodes = Array.from(username).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+            return colors[sumCharCodes % colors.length];
+        };
+
+        const getRandomMessage = () => {
+            const templates = [
+                "I just saw a {randomWord}!",
+                "Can you believe that {randomWord} is happening?",
+                "I'm feeling a bit {randomWord} today.",
+                "Did you hear about the {randomWord}?",
+                "What do you think about {randomWord}?",
+                "I love {randomWord} in the mornings!",
+                "Let's talk about {randomWord}!",
+                "Have you ever tried {randomWord}?"
+            ];
+            const randomWord = getRandomWord();
+            const template = templates[Math.floor(Math.random() * templates.length)];
+            return template.replace("{randomWord}", randomWord);
+        };
+
+        const getRandomWord = () => {
+            const words = [
+                "cats", "dogs", "pizza", "music", "art", 
+                "coding", "nature", "games", "books", "movies"
+            ];
+            return words[Math.floor(Math.random() * words.length)];
+        };
+
+        const getCurrentTime = () => {
+            const now = new Date();
+            return now.toLocaleTimeString();
+        };
+
+        const simulateBotActivity = () => {
+            if (Object.keys(activeBots).length < totalBots) {
+                const newBotName = getRandomUsername();
+                const color = getColorFromUsername(newBotName);
+                activeBots[newBotName] = color;
+
+                const message = `${newBotName} has joined the chat.`;
+                appendMessage(newBotName, color, message, true);
+            }
+
+            if (Math.random() < 0.1 && Object.keys(activeBots).length > 0) {
+                const botToLogout = Object.keys(activeBots)[Math.floor(Math.random() * Object.keys(activeBots).length)];
+                delete activeBots[botToLogout];
+                appendMessage(botToLogout, "red", `${botToLogout} has left the chat.`, true, true);
+            }
+
+            for (const bot in activeBots) {
+                if (Math.random() < 0.3) { 
+                    const message = getRandomMessage();
+                    appendMessage(bot, activeBots[bot], message);
+                }
+            }
+        };
+
+        const appendMessage = (username, color, message, isSystem = false, isLogout = false) => {
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("message");
+
+            const usernameSpan = document.createElement("span");
+            usernameSpan.classList.add("username");
+            usernameSpan.style.color = color;
+            usernameSpan.textContent = username;
+
+            const timestampSpan = document.createElement("span");
+            timestampSpan.classList.add("timestamp");
+            timestampSpan.textContent = `(${getCurrentTime()})`;
+
+            messageDiv.appendChild(usernameSpan);
+            if (isLogout) {
+                const messageText = document.createTextNode(` ${message}`);
+                messageDiv.classList.add("bot-logout");
+                messageDiv.appendChild(messageText);
+            } else {
+                const messageText = document.createTextNode(`: ${message}`);
+                messageDiv.appendChild(messageText);
+            }
+            messageDiv.appendChild(timestampSpan);
+            document.getElementById("chat-log").appendChild(messageDiv);
+            document.getElementById("chat-log").scrollTop = document.getElementById("chat-log").scrollHeight;
+        };
+
+        setInterval(simulateBotActivity, 1000);
+    </script>
+</body>
+</html>
